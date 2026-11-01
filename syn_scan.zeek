@@ -1,6 +1,3 @@
-##! Detects Nmap SYN scans (-sS).
-##! A SYN scan to an open port shows up in Zeek as history "ShR":
-##! SYN, SYN-ACK from the target, then RST from the scanner.
 @load base/frameworks/notice
 
 module NmapSYN;
@@ -8,14 +5,11 @@ module NmapSYN;
 export {
     redef enum Notice::Type += { Scan };
 
-    ## Half-open connections from one source (within 1 minute) before a Notice.
     const threshold: count = 50 &redef;
 }
 
-# Counter per source IP; entries expire after 1 minute (the time window).
 global half_open: table[addr] of count &default=0 &create_expire=1min;
 
-# Number of Notices raised so far for this scan type.
 global previous_notices: count = 0;
 
 event connection_state_remove(c: connection)
@@ -37,6 +31,6 @@ event connection_state_remove(c: connection)
                 $suppress_for=0secs]);
 
         ++previous_notices;
-        delete half_open[src];   # start over
+        delete half_open[src];
         }
     }
